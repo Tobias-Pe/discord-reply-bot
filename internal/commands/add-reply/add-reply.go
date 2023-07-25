@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/commands"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/handler/messages"
+	"github.com/Tobias-Pe/discord-reply-bot/internal/storage"
 	"github.com/bwmarrin/discordgo"
 	"strings"
 )
@@ -48,6 +49,8 @@ var addReplyFunction = func(s *discordgo.Session, i *discordgo.InteractionCreate
 
 func addReply(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
+
+	storage.AddElement(data.Options[1].StringValue(), data.Options[2].StringValue())
 
 	_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,

@@ -1,6 +1,8 @@
 services:
   bot:
     build: .
+    depends_on:
+      - redis
     env_file:
       - bot_config.env
 
@@ -8,3 +10,9 @@ services:
       image: "redis:7"
       environment:
         - ALLOW_EMPTY_PASSWORD=yes
+      volumes:
+        - redis_data:/data
+
+volumes:
+  redis_data:
+    external: false

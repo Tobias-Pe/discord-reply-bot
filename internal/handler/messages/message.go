@@ -1,6 +1,7 @@
 package messages
 
 import (
+	"github.com/Tobias-Pe/discord-reply-bot/internal/storage"
 	"github.com/bwmarrin/discordgo"
 	"strings"
 )
@@ -26,13 +27,9 @@ func MessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		LastMessages = LastMessages[1:]
 	}
 
-	// If the message is "ping" reply with "Pong!"
-	if m.Content == "ping" {
-		s.ChannelMessageSend(m.ChannelID, "Pong!")
-	}
+	answer := storage.GetRandom(transformedInput)
 
-	// If the message is "pong" reply with "Ping!"
-	if m.Content == "pong" {
-		s.ChannelMessageSend(m.ChannelID, "Ping!")
+	if len(answer) > 0 {
+		_, _ = s.ChannelMessageSend(m.ChannelID, answer)
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/commands/add-reply"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/handler/messages"
+	"github.com/Tobias-Pe/discord-reply-bot/internal/storage"
 	"github.com/bwmarrin/discordgo"
 	"log"
 	"os"
@@ -81,6 +82,8 @@ func main() {
 			return
 		}
 	}(s)
+
+	storage.Test()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
