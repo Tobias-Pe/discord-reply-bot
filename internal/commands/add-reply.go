@@ -4,7 +4,12 @@ import (
 	"fmt"
 	"github.com/Tobias-Pe/discord-reply-bot/internal"
 	"github.com/bwmarrin/discordgo"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+	"strings"
 )
+
+var allMatchChoices = []string{"exact", "occurrence"}
 
 var addReplyCommand = &discordgo.ApplicationCommand{
 	Name:        "add-reply",
@@ -64,16 +69,25 @@ func populateChoices(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	switch {
 	case data.Options[0].Focused:
-		choices = []*discordgo.ApplicationCommandOptionChoice{
-			{
-				Name:  "Exact",
-				Value: "exact",
-			},
-			{
-				Name:  "Occurrence",
-				Value: "occurrence",
-			},
+		var selectedMatchChoises []string
+		userSearchInput := data.Options[0].StringValue()
+		if len(userSearchInput) == 0 {
+			selectedMatchChoises = allMatchChoices
+		} else {
+			for _, matchChoice := range allMatchChoices {
+				if strings.Contains(matchChoice, userSearchInput) {
+					selectedMatchChoises = append(selectedMatchChoises, matchChoice)
+				}
+			}
 		}
+
+		for _, selectedMatchChoise := range selectedMatchChoises {
+			choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
+				Name:  cases.Title(language.English).String(selectedMatchChoise),
+				Value: selectedMatchChoise,
+			})
+		}
+
 	}
 
 	_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
