@@ -1,0 +1,7 @@
+Dockerfile
+README.md
+LICENSE
+.gitignore
+docker-compose.yml
+.dockerignore
+bot_config.env

@@ -1,0 +1,10 @@
+services:
+  bot:
+    build: .
+    env_file:
+      - bot_config.env
+
+  redis:
+      image: "redis:7"
+      environment:
+        - ALLOW_EMPTY_PASSWORD=yes
