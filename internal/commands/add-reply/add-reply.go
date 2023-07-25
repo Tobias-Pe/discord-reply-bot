@@ -55,6 +55,7 @@ func addReply(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
+			Flags: discordgo.MessageFlagsEphemeral,
 			Content: fmt.Sprintf(
 				"An `%s`-match was added for `%s` with the response `%s`",
 				data.Options[0].StringValue(),
@@ -88,6 +89,7 @@ func populateChoices(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionApplicationCommandAutocompleteResult,
 		Data: &discordgo.InteractionResponseData{
+			Flags:   discordgo.MessageFlagsEphemeral,
 			Choices: choices, // This is basically the whole purpose of autocomplete interaction - return custom options to the user.
 		},
 	})
