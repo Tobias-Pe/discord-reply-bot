@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"github.com/Tobias-Pe/discord-reply-bot/internal/commands"
-	"github.com/Tobias-Pe/discord-reply-bot/internal/handler"
+	"github.com/Tobias-Pe/discord-reply-bot/internal/commands/add-reply"
+	"github.com/Tobias-Pe/discord-reply-bot/internal/handler/messages"
 	"github.com/bwmarrin/discordgo"
 	"log"
 	"os"
@@ -47,11 +47,11 @@ func init() {
 
 var (
 	applicationCommands = []*discordgo.ApplicationCommand{
-		commands.AddReply.Cmd,
+		add_reply.AddReply.Cmd,
 	}
 
 	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
-		commands.AddReply.Cmd.Name: commands.AddReply.Callback,
+		add_reply.AddReply.Cmd.Name: add_reply.AddReply.Callback,
 	}
 )
 
@@ -69,7 +69,7 @@ func main() {
 	})
 
 	// Register the messageCreate func as a callback for MessageCreate events.
-	s.AddHandler(handler.MessageCreate)
+	s.AddHandler(messages.MessageCreate)
 
 	openSession()
 

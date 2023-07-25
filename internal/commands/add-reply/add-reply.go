@@ -1,11 +1,10 @@
-package commands
+package add_reply
 
 import (
 	"fmt"
-	"github.com/Tobias-Pe/discord-reply-bot/internal"
+	"github.com/Tobias-Pe/discord-reply-bot/internal/commands"
+	"github.com/Tobias-Pe/discord-reply-bot/internal/handler/messages"
 	"github.com/bwmarrin/discordgo"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 	"strings"
 )
 
@@ -17,21 +16,22 @@ var addReplyCommand = &discordgo.ApplicationCommand{
 	Options: []*discordgo.ApplicationCommandOption{
 		{
 			Name:         "match-type",
-			Description:  "How the message should be matched",
+			Description:  "How the message should be matched. Choose one of the options!",
 			Type:         discordgo.ApplicationCommandOptionString,
 			Required:     true,
 			Autocomplete: true,
 		},
 		{
-			Type:        discordgo.ApplicationCommandOptionString,
-			Name:        "to-be-matched",
-			Description: "What needs to be matched",
-			Required:    true,
+			Type:         discordgo.ApplicationCommandOptionString,
+			Name:         "to-be-matched",
+			Description:  "What needs to be matched. Choose one of the last few messages or write your own!",
+			Required:     true,
+			Autocomplete: true,
 		},
 		{
 			Type:        discordgo.ApplicationCommandOptionString,
 			Name:        "to-be-answered",
-			Description: "What needs to be answered",
+			Description: "What needs to be answered.",
 			Required:    true,
 		},
 	},
@@ -69,25 +69,17 @@ func populateChoices(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	switch {
 	case data.Options[0].Focused:
-		var selectedMatchChoises []string
-		userSearchInput := data.Options[0].StringValue()
-		if len(userSearchInput) == 0 {
-			selectedMatchChoises = allMatchChoices
-		} else {
-			for _, matchChoice := range allMatchChoices {
-				if strings.Contains(matchChoice, userSearchInput) {
-					selectedMatchChoises = append(selectedMatchChoises, matchChoice)
-				}
-			}
-		}
-
-		for _, selectedMatchChoise := range selectedMatchChoises {
+		selectedMatchChoices := commands.SearchChoices(data.Options[0].StringValue(), allMatchChoices)
+		choices = commands.TransformSelectedChoices(selectedMatchChoices)
+	case data.Options[1].Focused:
+		selectedMatchChoices := commands.SearchChoices(data.Options[1].StringValue(), messages.LastMessages)
+		choices = commands.TransformSelectedChoices(selectedMatchChoices)
+		if data.Options[1].StringValue() != "" {
 			choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
-				Name:  cases.Title(language.English).String(selectedMatchChoise),
-				Value: selectedMatchChoise,
+				Name:  data.Options[1].StringValue(),
+				Value: strings.ToLower(data.Options[1].StringValue()),
 			})
 		}
-
 	}
 
 	_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -98,7 +90,7 @@ func populateChoices(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	})
 }
 
-var AddReply = internal.Command{
+var AddReply = commands.Command{
 	Cmd:      addReplyCommand,
 	Callback: addReplyFunction,
 }
