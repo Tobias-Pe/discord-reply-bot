@@ -1,6 +1,7 @@
 package messages
 
 import (
+	"github.com/Tobias-Pe/discord-reply-bot/internal/cache"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/logger"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/models"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/storage"
@@ -12,9 +13,6 @@ import (
 const messagesToKeepInLastMessages = 10
 
 var lastMessages []string
-
-var cacheNeedsUpdate = true
-var cachedKeys []models.MessageMatch
 
 func MessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
@@ -28,7 +26,7 @@ func MessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	updateLastMessages(transformedInput)
 
-	allKeys, err := getAllKeys()
+	allKeys, err := cache.GetAllKeys()
 
 	if err != nil {
 		logger.Logger.Warnf("Couldn't fetch all keys %s", err)
@@ -71,21 +69,4 @@ func updateLastMessages(transformedInput string) {
 
 func GetLastMessages() []string {
 	return lastMessages
-}
-
-func InvalidateKeyCache() {
-	cacheNeedsUpdate = true
-	logger.Logger.Debug("Cache Invalidated")
-}
-
-func getAllKeys() ([]models.MessageMatch, error) {
-	var err error
-	if cacheNeedsUpdate {
-		cachedKeys, err = storage.GetAllKeys()
-		if err == nil {
-			cacheNeedsUpdate = false
-			logger.Logger.Debug("Cache Updated")
-		}
-	}
-	return cachedKeys, err
 }

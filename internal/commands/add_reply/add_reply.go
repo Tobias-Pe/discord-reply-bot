@@ -2,6 +2,7 @@ package add_reply
 
 import (
 	"fmt"
+	"github.com/Tobias-Pe/discord-reply-bot/internal/cache"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/commands"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/handler/messages"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/logger"
@@ -67,9 +68,9 @@ func addReply(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		"to-be-responded", data.Options[1].StringValue(),
 		"to-be-answered", data.Options[2].StringValue())
 
-	messages.InvalidateKeyCache()
+	cache.InvalidateKeyCache()
 
-	_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Flags: discordgo.MessageFlagsEphemeral,
@@ -81,6 +82,10 @@ func addReply(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			),
 		},
 	})
+
+	if err != nil {
+		logger.Logger.Error("Error on responding", err)
+	}
 }
 
 func populateChoices(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -103,13 +108,16 @@ func populateChoices(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		}
 	}
 
-	_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionApplicationCommandAutocompleteResult,
 		Data: &discordgo.InteractionResponseData{
-			Flags:   discordgo.MessageFlagsEphemeral,
 			Choices: choices, // This is basically the whole purpose of autocomplete interaction - return custom options to the user.
 		},
 	})
+
+	if err != nil {
+		logger.Logger.Error("Error on responding with choices", err)
+	}
 }
 
 var AddReply = commands.Command{

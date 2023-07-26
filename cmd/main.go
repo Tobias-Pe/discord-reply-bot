@@ -2,7 +2,8 @@ package main
 
 import (
 	"flag"
-	"github.com/Tobias-Pe/discord-reply-bot/internal/commands/add-reply"
+	"github.com/Tobias-Pe/discord-reply-bot/internal/commands/add_reply"
+	"github.com/Tobias-Pe/discord-reply-bot/internal/commands/remove_reply"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/handler/messages"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/logger"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/storage"
@@ -52,10 +53,12 @@ func init() {
 var (
 	applicationCommands = []*discordgo.ApplicationCommand{
 		add_reply.AddReply.Cmd,
+		remove_reply.RemoveReply.Cmd,
 	}
 
 	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
-		add_reply.AddReply.Cmd.Name: add_reply.AddReply.Callback,
+		add_reply.AddReply.Cmd.Name:       add_reply.AddReply.Callback,
+		remove_reply.RemoveReply.Cmd.Name: remove_reply.RemoveReply.Callback,
 	}
 )
 
