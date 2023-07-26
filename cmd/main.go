@@ -4,9 +4,10 @@ import (
 	"flag"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/commands/add-reply"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/handler/messages"
+	"github.com/Tobias-Pe/discord-reply-bot/internal/logger"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/storage"
 	"github.com/bwmarrin/discordgo"
-	"log"
+	"go.uber.org/zap"
 	"os"
 	"os/signal"
 )
@@ -19,12 +20,14 @@ var (
 var s *discordgo.Session
 
 func init() {
+	logger.InitLogger()
+
 	flag.Parse()
 
 	if *BotToken == "" {
 		value, ok := os.LookupEnv("DISCORD_BOT_TOKEN")
 		if !ok {
-			panic("No Token set!")
+			logger.Logger.Panic("No Token set!")
 		}
 		BotToken = &value
 	}
@@ -32,7 +35,7 @@ func init() {
 	if *GuildID == "" {
 		value, ok := os.LookupEnv("DISCORD_GUILD_ID")
 		if !ok {
-			panic("No GuildID set!")
+			logger.Logger.Panic("No GuildID set!")
 		}
 		GuildID = &value
 	}
@@ -42,7 +45,7 @@ func init() {
 	var err error
 	s, err = discordgo.New("Bot " + *BotToken)
 	if err != nil {
-		log.Fatalf("Invalid bot parameters: %v", err)
+		logger.Logger.Fatalf("Invalid bot parameters: %v", err)
 	}
 }
 
@@ -66,7 +69,7 @@ func init() {
 
 func main() {
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
-		log.Printf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
+		logger.Logger.Infof("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
 	})
 
 	// Register the messageCreate func as a callback for MessageCreate events.
@@ -77,32 +80,36 @@ func main() {
 	addCommands()
 
 	defer func(s *discordgo.Session) {
-		err := s.Close()
-		if err != nil {
-			return
-		}
+		_ = s.Close()
 	}(s)
 
-	storage.Test()
+	defer func(Logger *zap.SugaredLogger) {
+		_ = Logger.Sync()
+	}(logger.Logger)
+
+	err := storage.Test()
+	if err != nil {
+		logger.Logger.Panic("Redis not reachable!")
+	}
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
-	log.Println("Press Ctrl+C to exit")
+	logger.Logger.Infof("Press Ctrl+C to exit")
 	<-stop
 
-	log.Println("Gracefully shutting down.")
+	logger.Logger.Infof("Gracefully shutting down.")
 }
 
 func openSession() {
 	err := s.Open()
 	if err != nil {
-		log.Fatalf("Cannot open the session: %v", err)
+		logger.Logger.Fatalf("Cannot open the session: %v", err)
 	}
 }
 
 func addCommands() {
 
-	log.Println("Deleting applicationCommands...")
+	logger.Logger.Info("Deleting applicationCommands...")
 	cmds, err := s.ApplicationCommands(s.State.User.ID, *GuildID)
 	if err == nil {
 		for _, cmd := range cmds {
@@ -110,12 +117,12 @@ func addCommands() {
 		}
 	}
 
-	log.Println("Adding applicationCommands...")
+	logger.Logger.Infof("Adding applicationCommands...")
 	registeredCommands := make([]*discordgo.ApplicationCommand, len(applicationCommands))
 	for i, v := range applicationCommands {
 		cmd, err := s.ApplicationCommandCreate(s.State.User.ID, *GuildID, v)
 		if err != nil {
-			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
+			logger.Logger.Panicf("Cannot create '%v' command: %v", v.Name, err)
 		}
 		registeredCommands[i] = cmd
 	}

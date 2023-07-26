@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/commands"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/handler/messages"
+	"github.com/Tobias-Pe/discord-reply-bot/internal/logger"
+	"github.com/Tobias-Pe/discord-reply-bot/internal/models"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/storage"
 	"github.com/bwmarrin/discordgo"
 	"strings"
 )
 
-var allMatchChoices = []string{"exact", "occurrence"}
-
 var addReplyCommand = &discordgo.ApplicationCommand{
 	Name:        "add-reply",
-	Description: "addReplyCommand for demonstrating options",
+	Description: "Add a reply to a strict or not so strict matched message",
 	Options: []*discordgo.ApplicationCommandOption{
 		{
 			Name:         "match-type",
@@ -50,7 +50,24 @@ var addReplyFunction = func(s *discordgo.Session, i *discordgo.InteractionCreate
 func addReply(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
 
-	storage.AddElement(data.Options[1].StringValue(), data.Options[2].StringValue())
+	isExactMatch := data.Options[2].StringValue() == models.AllMatchChoices[0]
+	err := storage.AddElement(
+		models.MessageMatch{
+			Message:      data.Options[1].StringValue(),
+			IsExactMatch: isExactMatch,
+		},
+		data.Options[2].StringValue(),
+	)
+	if err != nil {
+		logger.Logger.Error(err)
+		return
+	}
+
+	logger.Logger.Debugw("Reply Added!", "Match-type", data.Options[0].StringValue(),
+		"to-be-responded", data.Options[1].StringValue(),
+		"to-be-answered", data.Options[2].StringValue())
+
+	messages.InvalidateKeyCache()
 
 	_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -73,10 +90,10 @@ func populateChoices(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	switch {
 	case data.Options[0].Focused:
-		selectedMatchChoices := commands.SearchChoices(data.Options[0].StringValue(), allMatchChoices)
+		selectedMatchChoices := commands.SearchChoices(data.Options[0].StringValue(), models.AllMatchChoices)
 		choices = commands.TransformSelectedChoices(selectedMatchChoices)
 	case data.Options[1].Focused:
-		selectedMatchChoices := commands.SearchChoices(data.Options[1].StringValue(), messages.LastMessages)
+		selectedMatchChoices := commands.SearchChoices(data.Options[1].StringValue(), messages.GetLastMessages())
 		choices = commands.TransformSelectedChoices(selectedMatchChoices)
 		if data.Options[1].StringValue() != "" {
 			choices = append(choices, &discordgo.ApplicationCommandOptionChoice{

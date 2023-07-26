@@ -2,7 +2,8 @@ package storage
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
+	"github.com/Tobias-Pe/discord-reply-bot/internal/models"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -12,62 +13,88 @@ var client = redis.NewClient(&redis.Options{
 	DB:       0,  // use default DB
 })
 
-func Test() {
-	pong, err := client.Ping(context.Background()).Result()
+func Test() error {
+	_, err := client.Ping(context.Background()).Result()
+
 	if err != nil {
-		fmt.Println("Failed to connect to Redis:", err)
-		return
+		return err
 	}
-	fmt.Println("Connected to Redis:", pong)
+
+	return nil
 }
 
-func AddElement(key, value string) {
+func AddElement(key models.MessageMatch, value string) error {
 	ctx := context.Background()
 
-	err := client.SAdd(ctx, key, value).Err()
+	marshal, err := json.Marshal(key)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
+
+	return client.SAdd(ctx, string(marshal), value).Err()
 }
 
-func RemoveElement(key, value string) {
+func RemoveElement(key models.MessageMatch, value string) error {
 	ctx := context.Background()
 
-	err := client.SRem(ctx, key, value).Err()
+	marshal, err := json.Marshal(key)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
+
+	return client.SRem(ctx, string(marshal), value).Err()
 }
 
-func GetLength(key string) int64 {
+func GetLength(key string) (int64, error) {
 	ctx := context.Background()
 
-	length, err := client.SCard(ctx, key).Result()
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	return length
+	return client.SCard(ctx, key).Result()
 }
 
-func GetAll(key string) []string {
+func GetAll(key models.MessageMatch) ([]string, error) {
 	ctx := context.Background()
 
-	val, err := client.SMembers(ctx, key).Result()
+	marshal, err := json.Marshal(key)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
-	return val
+	val, err := client.SMembers(ctx, string(marshal)).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	return val, nil
 }
 
-func GetRandom(key string) string {
+func GetAllKeys() ([]models.MessageMatch, error) {
 	ctx := context.Background()
 
-	val, err := client.SRandMember(ctx, key).Result()
+	result, err := client.Keys(ctx, "*").Result()
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
-	return val
+	var allMessageMatchers []models.MessageMatch
+	for _, s := range result {
+		var messageMatch models.MessageMatch
+		err := json.Unmarshal([]byte(s), &messageMatch)
+		if err != nil {
+			return nil, err
+		}
+		allMessageMatchers = append(allMessageMatchers, messageMatch)
+	}
+
+	return allMessageMatchers, err
+}
+
+func GetRandom(key models.MessageMatch) (string, error) {
+	ctx := context.Background()
+
+	marshal, err := json.Marshal(key)
+	if err != nil {
+		return "", err
+	}
+
+	return client.SRandMember(ctx, string(marshal)).Result()
 }
