@@ -1,7 +1,6 @@
 package remove_reply
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/cache"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/commands"
@@ -16,6 +15,13 @@ var removeReplyCommand = &discordgo.ApplicationCommand{
 	Name:        "remove-reply",
 	Description: "Remove a reply",
 	Options: []*discordgo.ApplicationCommandOption{
+		{
+			Name:         "match-type",
+			Description:  "Select which type of match you want to delete.",
+			Type:         discordgo.ApplicationCommandOptionString,
+			Required:     true,
+			Autocomplete: true,
+		},
 		{
 			Type:         discordgo.ApplicationCommandOptionString,
 			Name:         "to-be-matched",
@@ -45,20 +51,15 @@ var removeReplyFunction = func(s *discordgo.Session, i *discordgo.InteractionCre
 func removeReply(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
 
-	var currentSelectedKey models.MessageMatch
-	err := json.Unmarshal([]byte(data.Options[0].StringValue()), &currentSelectedKey)
+	toBeRemovedMatch := models.MessageMatch{Message: data.Options[1].StringValue(), IsExactMatch: data.Options[0].StringValue() == models.AllMatchChoices[0]}
+	err := storage.RemoveElement(toBeRemovedMatch, data.Options[2].StringValue())
 	if err != nil {
-		logger.Logger.Debugw("Couldn't unmarshall selected key", "Key", data.Options[0].StringValue())
-		return
-	}
-	err = storage.RemoveElement(currentSelectedKey, data.Options[1].StringValue())
-	if err != nil {
-		logger.Logger.Warnw("Couldn't delete key-value", "Key", currentSelectedKey, "value", data.Options[1].StringValue())
+		logger.Logger.Warnw("Couldn't delete key-value", "Key", toBeRemovedMatch, "value", data.Options[2].StringValue())
 		return
 	}
 
-	logger.Logger.Debugw("Reply removed!", "to-be-matched", data.Options[0].StringValue(),
-		"to-be-answered", data.Options[1].StringValue())
+	logger.Logger.Debugw("Reply removed!", "to-be-matched", toBeRemovedMatch,
+		"to-be-answered", data.Options[2].StringValue())
 
 	cache.InvalidateKeyCache()
 
@@ -68,8 +69,8 @@ func removeReply(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			Flags: discordgo.MessageFlagsEphemeral,
 			Content: fmt.Sprintf(
 				"The value `%s` for key `%s` got removed",
-				data.Options[1].StringValue(),
-				currentSelectedKey.Message,
+				data.Options[2].StringValue(),
+				toBeRemovedMatch.Message,
 			),
 		},
 	})
@@ -86,67 +87,53 @@ func populateChoices(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	switch {
 	case data.Options[0].Focused:
-		keys, err := cache.GetAllKeys()
-		if err != nil {
-			logger.Logger.Debugw("Couldn't fetch all keys", "Error", err)
-			break
-		}
-
-		var keysStringVersion []string
-		for _, key := range keys {
-			sprintf := fmt.Sprintf("Exact: %t, Msg: %s", key.IsExactMatch, key.Message)
-			logger.Logger.Debugf("Key stingified: %s", sprintf)
-			keysStringVersion = append(keysStringVersion, sprintf)
-		}
-
-		selectedMatchChoiceIndices := commands.SearchChoicesIndices(data.Options[0].StringValue(), keysStringVersion)
-		logger.Logger.Debug("Selected Choices: ", selectedMatchChoiceIndices)
-
-		for _, index := range selectedMatchChoiceIndices {
-			marshal, err := json.Marshal(keys[index])
-			if err != nil {
-				logger.Logger.Debugw("Couldn't marshall key", "Key", keys[index])
-				choices = []*discordgo.ApplicationCommandOptionChoice{}
-				break
-			}
-
-			if len(keysStringVersion[index]) <= 100 && len(string(marshal)) <= 100 {
-				choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
-					Name:  keysStringVersion[index],
-					Value: string(marshal),
-				})
-			}
-		}
-		if data.Options[0].StringValue() != "" {
-			choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
-				Name:  data.Options[0].StringValue(),
-				Value: strings.ToLower(data.Options[0].StringValue()),
-			})
-		}
-
-		//TODO add case custom key chosen and request to remove
-	case data.Options[1].Focused:
-		var currentSelectedKey models.MessageMatch
-		err := json.Unmarshal([]byte(data.Options[0].StringValue()), &currentSelectedKey)
-		if err != nil {
-			logger.Logger.Debugw("Couldn't unmarshall selected key", "Key", data.Options[0].StringValue())
-			break
-		}
-		values, err := storage.GetAll(currentSelectedKey)
-		if err != nil {
-			logger.Logger.Debugw("Couldn't get from redis selected key's values", "Key", currentSelectedKey)
-			break
-		}
-		selectedMatchChoices := commands.SearchChoices(data.Options[1].StringValue(), values)
+		selectedMatchChoices := commands.SearchChoices(data.Options[0].StringValue(), models.AllMatchChoices)
 		choices = commands.TransformSelectedChoices(selectedMatchChoices)
+	case data.Options[1].Focused:
 		if data.Options[1].StringValue() != "" {
 			choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
 				Name:  data.Options[1].StringValue(),
 				Value: strings.ToLower(data.Options[1].StringValue()),
 			})
 		}
+
+		messageMatches, err := cache.GetAllKeys()
+		if err != nil {
+			logger.Logger.Debugw("Couldn't fetch all messageMatches", "Error", err)
+			break
+		}
+
+		var keysStringVersion []string
+		for _, messageMatch := range messageMatches {
+			isExactMatch := data.Options[0].StringValue() == models.AllMatchChoices[0]
+			if messageMatch.IsExactMatch == isExactMatch {
+				keysStringVersion = append(keysStringVersion, messageMatch.Message)
+			}
+		}
+
+		selectedMatchChoices := commands.SearchChoices(data.Options[1].StringValue(), keysStringVersion)
+		choices = append(choices, commands.TransformSelectedChoices(selectedMatchChoices)...)
+
+	case data.Options[2].Focused:
+		if data.Options[2].StringValue() != "" {
+			choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
+				Name:  data.Options[2].StringValue(),
+				Value: strings.ToLower(data.Options[2].StringValue()),
+			})
+		}
+
+		isExactMatch := data.Options[0].StringValue() == models.AllMatchChoices[0]
+		values, err := storage.GetAll(models.MessageMatch{Message: data.Options[1].StringValue(), IsExactMatch: isExactMatch})
+		if err != nil {
+			logger.Logger.Debugw("Couldn't get key's values", "Key", data.Options[0].StringValue(), "Excact", true)
+			break
+		}
+
+		selectedMatchChoices := commands.SearchChoices(data.Options[2].StringValue(), values)
+		choices = append(choices, commands.TransformSelectedChoices(selectedMatchChoices)...)
 	}
 
+	logger.Logger.Debug(choices)
 	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionApplicationCommandAutocompleteResult,
 		Data: &discordgo.InteractionResponseData{
