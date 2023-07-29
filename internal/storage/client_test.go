@@ -177,10 +177,7 @@ func TestRemoveElement(t *testing.T) {
 }
 
 func addElement(t *testing.T, isExact bool, message, reply string) (models.MessageMatch, string) {
-	testKey := struct {
-		Message      string
-		IsExactMatch bool
-	}{Message: message, IsExactMatch: isExact}
+	testKey := models.MessageMatch{Message: message, IsExactMatch: isExact}
 	testValue := reply
 	err := AddElement(testKey, testValue)
 	if err != nil {
