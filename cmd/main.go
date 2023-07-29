@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/commands/add_reply"
+	"github.com/Tobias-Pe/discord-reply-bot/internal/commands/edit_key"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/commands/edit_reply"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/commands/list_replies"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/commands/remove_key"
@@ -69,6 +70,7 @@ var (
 		remove_reply.RemoveReply.Cmd,
 		list_replies.ListReplies.Cmd,
 		edit_reply.EditReply.Cmd,
+		edit_key.EditKey.Cmd,
 	}
 
 	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
@@ -77,6 +79,7 @@ var (
 		remove_reply.RemoveReply.Cmd.Name: remove_reply.RemoveReply.Callback,
 		list_replies.ListReplies.Cmd.Name: list_replies.ListReplies.Callback,
 		edit_reply.EditReply.Cmd.Name:     edit_reply.EditReply.Callback,
+		edit_key.EditKey.Cmd.Name:         edit_key.EditKey.Callback,
 	}
 )
 

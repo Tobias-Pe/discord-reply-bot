@@ -32,6 +32,22 @@ func AddElement(key models.MessageMatch, value string) error {
 	return client.SAdd(ctx, string(marshal), value).Err()
 }
 
+func RenameKey(key models.MessageMatch, newKey models.MessageMatch) error {
+	ctx := context.Background()
+
+	marshal, err := json.Marshal(key)
+	if err != nil {
+		return err
+	}
+
+	newMarshal, err := json.Marshal(newKey)
+	if err != nil {
+		return err
+	}
+
+	return client.Rename(ctx, string(marshal), string(newMarshal)).Err()
+}
+
 func RemoveElement(key models.MessageMatch, value string) error {
 	ctx := context.Background()
 
