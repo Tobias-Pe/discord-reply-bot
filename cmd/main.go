@@ -5,6 +5,7 @@ import (
 	"github.com/Tobias-Pe/discord-reply-bot/internal/commands/add_reply"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/commands/edit_reply"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/commands/list_replies"
+	"github.com/Tobias-Pe/discord-reply-bot/internal/commands/remove_key"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/commands/remove_reply"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/handler/messages"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/logger"
@@ -64,6 +65,7 @@ func init() {
 var (
 	applicationCommands = []*discordgo.ApplicationCommand{
 		add_reply.AddReply.Cmd,
+		remove_key.RemoveKey.Cmd,
 		remove_reply.RemoveReply.Cmd,
 		list_replies.ListReplies.Cmd,
 		edit_reply.EditReply.Cmd,
@@ -71,6 +73,7 @@ var (
 
 	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		add_reply.AddReply.Cmd.Name:       add_reply.AddReply.Callback,
+		remove_key.RemoveKey.Cmd.Name:     remove_key.RemoveKey.Callback,
 		remove_reply.RemoveReply.Cmd.Name: remove_reply.RemoveReply.Callback,
 		list_replies.ListReplies.Cmd.Name: list_replies.ListReplies.Callback,
 		edit_reply.EditReply.Cmd.Name:     edit_reply.EditReply.Callback,

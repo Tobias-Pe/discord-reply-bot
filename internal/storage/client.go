@@ -43,6 +43,17 @@ func RemoveElement(key models.MessageMatch, value string) error {
 	return client.SRem(ctx, string(marshal), value).Err()
 }
 
+func RemoveKey(key models.MessageMatch) error {
+	ctx := context.Background()
+
+	marshal, err := json.Marshal(key)
+	if err != nil {
+		return err
+	}
+
+	return client.Del(ctx, string(marshal)).Err()
+}
+
 func GetAll(key models.MessageMatch) ([]string, error) {
 	ctx := context.Background()
 
