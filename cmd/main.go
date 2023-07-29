@@ -112,7 +112,7 @@ func openSession() {
 
 	storage.InitClient(*RedisUrl)
 
-	err = storage.Test()
+	err = storage.CheckConnection()
 	if err != nil {
 		logger.Logger.Panicf("Redis not reachable: %v", err)
 	}

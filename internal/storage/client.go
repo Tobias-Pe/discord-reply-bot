@@ -17,7 +17,7 @@ func InitClient(redisUrl string) {
 	})
 }
 
-func Test() error {
+func CheckConnection() error {
 	return client.Ping(context.Background()).Err()
 }
 
