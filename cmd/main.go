@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/commands/add_reply"
+	"github.com/Tobias-Pe/discord-reply-bot/internal/commands/list_replies"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/commands/remove_reply"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/handler/messages"
 	"github.com/Tobias-Pe/discord-reply-bot/internal/logger"
@@ -63,11 +64,13 @@ var (
 	applicationCommands = []*discordgo.ApplicationCommand{
 		add_reply.AddReply.Cmd,
 		remove_reply.RemoveReply.Cmd,
+		list_replies.ListReplies.Cmd,
 	}
 
 	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		add_reply.AddReply.Cmd.Name:       add_reply.AddReply.Callback,
 		remove_reply.RemoveReply.Cmd.Name: remove_reply.RemoveReply.Callback,
+		list_replies.ListReplies.Cmd.Name: list_replies.ListReplies.Callback,
 	}
 )
 
@@ -114,7 +117,7 @@ func openSession() {
 
 	err = storage.CheckConnection()
 	if err != nil {
-		logger.Logger.Panicf("Redis not reachable: %v", err)
+		logger.Logger.Panicf("Redis not reachable at %s: %v", *RedisUrl, err)
 	}
 }
 

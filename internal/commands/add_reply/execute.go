@@ -11,21 +11,26 @@ import (
 
 func addReply(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
+	var nameToOptionMap = map[string]*discordgo.ApplicationCommandInteractionDataOption{}
+
+	for _, option := range data.Options {
+		nameToOptionMap[option.Name] = option
+	}
 
 	response := fmt.Sprintf(
 		"An `%s`-match was added for `%s` with the response `%s`",
-		data.Options[0].StringValue(),
-		data.Options[1].StringValue(),
-		data.Options[2].StringValue(),
+		nameToOptionMap[matchTypeOptionName].StringValue(),
+		nameToOptionMap[toBeMatchedOptionName].StringValue(),
+		nameToOptionMap[toBeAnsweredOptionName].StringValue(),
 	)
 
-	isExactMatch := data.Options[0].StringValue() == models.AllMatchChoices[0]
+	isExactMatch := nameToOptionMap[matchTypeOptionName].StringValue() == models.AllMatchChoices[0]
 	err := storage.AddElement(
 		models.MessageMatch{
-			Message:      data.Options[1].StringValue(),
+			Message:      nameToOptionMap[toBeMatchedOptionName].StringValue(),
 			IsExactMatch: isExactMatch,
 		},
-		data.Options[2].StringValue(),
+		nameToOptionMap[toBeAnsweredOptionName].StringValue(),
 	)
 	if err != nil {
 		logger.Logger.Error(err)
@@ -33,9 +38,9 @@ func addReply(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			"Something went wrong. Please check your input.",
 		)
 	} else {
-		logger.Logger.Debugw("Reply Added!", "Match-type", data.Options[0].StringValue(),
-			"to-be-responded", data.Options[1].StringValue(),
-			"to-be-answered", data.Options[2].StringValue())
+		logger.Logger.Debugw("Reply Added!", "Match-type", nameToOptionMap[matchTypeOptionName].StringValue(),
+			"to-be-responded", nameToOptionMap[toBeMatchedOptionName].StringValue(),
+			"to-be-answered", nameToOptionMap[toBeAnsweredOptionName].StringValue())
 
 		cache.InvalidateKeyCache()
 	}

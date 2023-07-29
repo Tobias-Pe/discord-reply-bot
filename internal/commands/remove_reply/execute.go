@@ -11,23 +11,28 @@ import (
 
 func removeReply(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
+	var nameToOptionMap = map[string]*discordgo.ApplicationCommandInteractionDataOption{}
+
+	for _, option := range data.Options {
+		nameToOptionMap[option.Name] = option
+	}
 
 	response := fmt.Sprintf(
 		"The value `%s` for key `%s` got removed",
-		data.Options[2].StringValue(),
-		data.Options[1].StringValue(),
+		nameToOptionMap[toBeAnsweredOptionName].StringValue(),
+		nameToOptionMap[toBeMatchedOptionName].StringValue(),
 	)
 
-	toBeRemovedMatch := models.MessageMatch{Message: data.Options[1].StringValue(), IsExactMatch: data.Options[0].StringValue() == models.AllMatchChoices[0]}
-	err := storage.RemoveElement(toBeRemovedMatch, data.Options[2].StringValue())
+	toBeRemovedMatch := models.MessageMatch{Message: nameToOptionMap[toBeMatchedOptionName].StringValue(), IsExactMatch: nameToOptionMap[matchTypeOptionName].StringValue() == models.AllMatchChoices[0]}
+	err := storage.RemoveElement(toBeRemovedMatch, nameToOptionMap[toBeAnsweredOptionName].StringValue())
 	if err != nil {
-		logger.Logger.Warnw("Couldn't delete key-value", "Key", toBeRemovedMatch, "value", data.Options[2].StringValue())
+		logger.Logger.Warnw("Couldn't delete key-value", "Key", toBeRemovedMatch, "value", nameToOptionMap[toBeAnsweredOptionName].StringValue())
 		response = fmt.Sprintf(
 			"Something went wrong. Please check your input.",
 		)
 	} else {
 		logger.Logger.Debugw("Reply removed!", "to-be-matched", toBeRemovedMatch,
-			"to-be-answered", data.Options[2].StringValue())
+			"to-be-answered", nameToOptionMap[toBeAnsweredOptionName].StringValue())
 		cache.InvalidateKeyCache()
 	}
 
