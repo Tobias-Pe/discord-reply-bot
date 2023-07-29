@@ -2,7 +2,7 @@
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL%203.0-blue.svg)](https://opensource.org/licenses/GPL-3.0)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Tobias-Pe/discord-reply-bot)](https://goreportcard.com/report/github.com/Tobias-Pe/discord-reply-bot)
-[![Gitmoji](https://img.shields.io/badge/gitmoji-%20😜%20😍-FFDD67.svg?style=flat-square)](https://gitmoji.dev)
+[![Gitmoji](https://img.shields.io/badge/gitmoji-%20😜%20😍-FFDD67.svg)](https://gitmoji.dev)
 
 > ✨ A feature-rich Discord bot that allows users to set up automatic replies based on message matches.
 
