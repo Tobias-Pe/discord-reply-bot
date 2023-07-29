@@ -55,6 +55,10 @@ Additionally, the bot provides a convenient feature where it suggests the last 1
     
     Replace `YOUR_DISCORD_BOT_TOKEN`, `YOUR_DISCORD_GUILD_ID`, and `YOUR_REDIS_URL` with appropriate values.
 
+### Logging Level
+
+You can customize the logger in the `internal/logger/logger.go` file. By default, the logger is set to `zap.NewProduction()` which provides a production-ready configuration. However, you can adjust it according to your desired logging settings by modifying the logger initialization.
+
 ## ⚙️ Commands
 
 The bot supports the following commands:
