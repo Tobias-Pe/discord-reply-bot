@@ -18,13 +18,7 @@ func InitClient(redisUrl string) {
 }
 
 func Test() error {
-	_, err := client.Ping(context.Background()).Result()
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return client.Ping(context.Background()).Err()
 }
 
 func AddElement(key models.MessageMatch, value string) error {
@@ -49,12 +43,6 @@ func RemoveElement(key models.MessageMatch, value string) error {
 	return client.SRem(ctx, string(marshal), value).Err()
 }
 
-func GetLength(key string) (int64, error) {
-	ctx := context.Background()
-
-	return client.SCard(ctx, key).Result()
-}
-
 func GetAll(key models.MessageMatch) ([]string, error) {
 	ctx := context.Background()
 
@@ -63,12 +51,7 @@ func GetAll(key models.MessageMatch) ([]string, error) {
 		return nil, err
 	}
 
-	val, err := client.SMembers(ctx, string(marshal)).Result()
-	if err != nil {
-		return nil, err
-	}
-
-	return val, nil
+	return client.SMembers(ctx, string(marshal)).Result()
 }
 
 func GetAllKeys() ([]models.MessageMatch, error) {
@@ -90,15 +73,4 @@ func GetAllKeys() ([]models.MessageMatch, error) {
 	}
 
 	return allMessageMatchers, err
-}
-
-func GetRandom(key models.MessageMatch) (string, error) {
-	ctx := context.Background()
-
-	marshal, err := json.Marshal(key)
-	if err != nil {
-		return "", err
-	}
-
-	return client.SRandMember(ctx, string(marshal)).Result()
 }
