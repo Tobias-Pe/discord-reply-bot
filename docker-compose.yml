@@ -3,8 +3,10 @@ services:
     build: .
     depends_on:
       - redis
-    env_file:
-      - bot_config.env
+    environment:
+      - DISCORD_BOT_TOKEN
+      - DISCORD_GUILD_ID
+      - REDIS_URL
     deploy:
       restart_policy:
         condition: on-failure
