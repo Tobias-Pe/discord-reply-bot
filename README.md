@@ -33,14 +33,12 @@ Additionally, the bot provides a convenient feature where it suggests the last 1
 2. Navigate to the project folder: `cd discord-reply-bot`
 3. Create a `.env` file in the root directory with the following content:
 
-```
-DISCORD_BOT_TOKEN=YOUR_DISCORD_BOT_TOKEN
-DISCORD_GUILD_ID=YOUR_DISCORD_GUILD_ID
-REDIS_URL=YOUR_REDIS_URL
-```
-
-
-Replace `YOUR_DISCORD_BOT_TOKEN`, `YOUR_DISCORD_GUILD_ID`, and `YOUR_REDIS_URL` with appropriate values.
+    ```
+    DISCORD_BOT_TOKEN=YOUR_DISCORD_BOT_TOKEN
+    DISCORD_GUILD_ID=YOUR_DISCORD_GUILD_ID
+    REDIS_URL=YOUR_REDIS_URL
+    ```
+    Replace `YOUR_DISCORD_BOT_TOKEN`, `YOUR_DISCORD_GUILD_ID`, and `YOUR_REDIS_URL` with appropriate values.
 
 4. Deploy the bot using Docker Compose: `docker-compose up -d`
 
@@ -51,11 +49,11 @@ Replace `YOUR_DISCORD_BOT_TOKEN`, `YOUR_DISCORD_GUILD_ID`, and `YOUR_REDIS_URL` 
 3. Build the bot: `go build -o bot`
 4. Run the bot with the necessary arguments:
 
-```bash
-./bot -token YOUR_DISCORD_BOT_TOKEN -guild YOUR_DISCORD_GUILD_ID -redis YOUR_REDIS_URL
-```
-
-Replace `YOUR_DISCORD_BOT_TOKEN`, `YOUR_DISCORD_GUILD_ID`, and `YOUR_REDIS_URL` with appropriate values.
+    ```bash
+    ./bot -token YOUR_DISCORD_BOT_TOKEN -guild YOUR_DISCORD_GUILD_ID -redis YOUR_REDIS_URL
+    ```
+    
+    Replace `YOUR_DISCORD_BOT_TOKEN`, `YOUR_DISCORD_GUILD_ID`, and `YOUR_REDIS_URL` with appropriate values.
 
 ## ⚙️ Commands
 

@@ -133,7 +133,7 @@ func TestInitClient(t *testing.T) {
 		wantErr bool
 	}{
 		{name: "Normal init", args: struct{ redisUrl string }{redisUrl: server.Addr()}, wantErr: false},
-		{name: "Fail init", args: struct{ redisUrl string }{redisUrl: "blalba"}, wantErr: true},
+		{name: "Fail init", args: struct{ redisUrl string }{redisUrl: "foo"}, wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

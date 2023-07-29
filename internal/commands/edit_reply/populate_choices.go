@@ -67,7 +67,7 @@ func populateChoicesForToBeAnswered(focusedDataOption *discordgo.ApplicationComm
 	isExactMatch := matchTypeOption.StringValue() == models.AllMatchChoices[0]
 	values, err := storage.GetAll(models.MessageMatch{Message: toBeMatchedOption.StringValue(), IsExactMatch: isExactMatch})
 	if err != nil {
-		logger.Logger.Debugw("Couldn't get key's values", "Key", matchTypeOption.StringValue(), "Excact", true)
+		logger.Logger.Debugw("Couldn't get key's values", "Key", matchTypeOption.StringValue(), "Exact", true)
 		return choices
 	}
 

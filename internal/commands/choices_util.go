@@ -27,12 +27,3 @@ func SearchChoices(searchInput string, allChoices []string) []string {
 	}
 	return selectedChoices
 }
-func SearchChoicesIndices(searchInput string, allChoices []string) []int {
-	var selectedChoices []int
-	for i, matchChoice := range allChoices {
-		if (len(searchInput) == 0 || strings.Contains(matchChoice, searchInput)) && len(matchChoice) <= 100 {
-			selectedChoices = append(selectedChoices, i)
-		}
-	}
-	return selectedChoices
-}
