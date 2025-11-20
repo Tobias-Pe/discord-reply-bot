@@ -1,6 +1,6 @@
 module github.com/Tobias-Pe/discord-reply-bot
 
-go 1.20
+go 1.24.0
 
 require (
 	github.com/alicebob/miniredis/v2 v2.30.4
@@ -17,6 +17,6 @@ require (
 	github.com/yuin/gopher-lua v1.1.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.31.0 // indirect
-	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/crypto v0.45.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
 )
